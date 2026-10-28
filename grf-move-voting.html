@@ -493,6 +493,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Ar
     <div class="res-actions">
       <button class="btn btn-secondary" onclick="goTo('start')">← Zurück zum Start</button>
       <button class="btn-danger" onclick="clearLocalVotes()">Lokale Stimmen löschen</button>
+      <button class="btn-danger" onclick="clearCloudVotes()">☁️ Alle Ergebnisse zurücksetzen</button>
     </div>
   </div>
 </div>
@@ -736,6 +737,31 @@ function getLocalVotes() {
     }
   }
   return votes;
+}
+
+async function clearCloudVotes() {
+  if (!confirm('Alle Cloud-Ergebnisse unwiderruflich löschen?')) return;
+  if (!cloudConfigured()) { alert('Kein Cloud-Backend konfiguriert.'); return; }
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_MASTER_KEY,
+        'X-Bin-Meta': 'false'
+      },
+      body: JSON.stringify([])
+    });
+    if (res.ok) {
+      clearLocalVotes();
+      alert('Ergebnisse erfolgreich zurückgesetzt!');
+      loadResults();
+    } else {
+      alert('Fehler beim Zurücksetzen: ' + res.status);
+    }
+  } catch(e) {
+    alert('Verbindungsfehler: ' + e.message);
+  }
 }
 
 function clearLocalVotes() {
